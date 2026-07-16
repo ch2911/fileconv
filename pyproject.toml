@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fileconv"
+version = "0.1.0"
+description = "Local file format converter: images (HEIC/JPEG/PNG), video (MP4/HEVC/MOV), audio, and documents (DOCX/PDF)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pillow>=10.0",
+    "pillow-heif>=0.16",
+    "imageio-ffmpeg>=0.5",
+    "pdf2docx>=0.5.8",
+    'docx2pdf>=0.1.8; sys_platform == "win32" or sys_platform == "darwin"',
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[project.scripts]
+fileconv = "fileconv.cli:main"
+
+[tool.setuptools]
+packages = ["fileconv"]
