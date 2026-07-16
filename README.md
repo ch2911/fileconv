@@ -75,6 +75,21 @@ Options:
 You can also install it as a command: `pip install -e .` then use `fileconv`
 instead of `python convert.py`.
 
+## Windows app
+
+Build a standalone `FileConverter.exe` (no Python needed to run it):
+
+```powershell
+pip install pyinstaller
+.\build_app.ps1
+```
+
+The app lands in `dist\FileConverter\FileConverter.exe`. Double-clicking opens
+the GUI; to get it on the taskbar, launch it and right-click its taskbar icon →
+**Pin to taskbar** (or create a Start Menu shortcut and pin from there).
+The exe also works from scripts: `FileConverter.exe photo.heic -t jpg` converts
+silently with no window.
+
 ## Tests
 
 ```powershell
