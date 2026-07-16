@@ -11,6 +11,7 @@ services — everything runs on your machine.
 | Video     | MP4 ↔ MOV ↔ MKV ↔ WebM ↔ AVI, re-encode to HEVC (H.265), video → GIF |
 | Audio     | MP3 ↔ WAV ↔ FLAC ↔ AAC ↔ M4A ↔ OGG ↔ Opus (also extracts audio from video) |
 | Documents | DOCX ↔ PDF                                                          |
+| Web URLs  | YouTube/SoundCloud/etc. link → MP3 (or any audio format above) or MP4/MKV/WebM/MOV video |
 
 Notes:
 
@@ -56,6 +57,13 @@ python convert.py movie.mp4 -t mp3             # extract soundtrack
 # Documents
 python convert.py report.docx -t pdf
 python convert.py scan.pdf -t docx
+
+# Web URLs (saved to ~/Downloads unless -o is given).
+# Works for YouTube, SoundCloud, and most sites yt-dlp supports.
+# Only download content you have the rights to.
+python convert.py "https://www.youtube.com/watch?v=..." -t mp3
+python convert.py "https://soundcloud.com/artist/track" -t mp3
+python convert.py "https://www.youtube.com/watch?v=..." -t mp4
 
 # GUI (or just run with no arguments)
 python convert.py --gui

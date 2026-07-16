@@ -8,6 +8,7 @@ from pathlib import Path
 from tkinter import filedialog, ttk
 
 from .cli import ALL_TARGETS, convert_one
+from .web import download_url, is_url
 
 _FILETYPES = [
     ("All supported", "*.heic *.heif *.jpg *.jpeg *.png *.webp *.bmp *.tif *.tiff "
@@ -48,6 +49,14 @@ class ConverterApp:
         ttk.Combobox(top, textvariable=self.target, values=ALL_TARGETS,
                      width=8, state="readonly").pack(side="left")
 
+        url_row = ttk.Frame(root, padding=(8, 0, 8, 8))
+        url_row.pack(fill="x")
+        ttk.Label(url_row, text="Or paste a URL (YouTube, SoundCloud, ...):").pack(side="left")
+        self.url_entry = ttk.Entry(url_row)
+        self.url_entry.pack(side="left", fill="x", expand=True, padx=6)
+        self.url_entry.bind("<Return>", lambda _e: self.add_url())
+        ttk.Button(url_row, text="Add URL", command=self.add_url).pack(side="left")
+
         mid = ttk.Frame(root, padding=(8, 0))
         mid.pack(fill="both", expand=True)
         self.listbox = tk.Listbox(mid, selectmode="extended")
@@ -83,13 +92,24 @@ class ConverterApp:
     def clear_files(self) -> None:
         self.listbox.delete(0, "end")
 
+    def add_url(self) -> None:
+        url = self.url_entry.get().strip()
+        if not url:
+            return
+        if not is_url(url):
+            self.status.set("URLs must start with http:// or https://")
+            return
+        if url not in self.listbox.get(0, "end"):
+            self.listbox.insert("end", url)
+        self.url_entry.delete(0, "end")
+
     def pick_outdir(self) -> None:
         chosen = filedialog.askdirectory()
         if chosen:
             self.outdir.set(chosen)
 
     def start_convert(self) -> None:
-        files = [Path(p) for p in self.listbox.get(0, "end")]
+        files = list(self.listbox.get(0, "end"))
         if not files:
             self.status.set("No files selected.")
             return
@@ -98,17 +118,22 @@ class ConverterApp:
         threading.Thread(target=self._convert_all, args=(files,), daemon=True).start()
 
     # ---- worker --------------------------------------------------------
-    def _convert_all(self, files: list[Path]) -> None:
+    def _convert_all(self, files: list[str]) -> None:
         args = _Args(self.outdir.get().strip())
         target = self.target.get()
         done = 0
-        for src in files:
+        for item in files:
             try:
-                dest = convert_one(src, target, args)
-                self._log(f"OK      {src.name}  ->  {dest}")
+                if is_url(item):
+                    dest = download_url(item, target, args.outdir, overwrite=True)
+                    self._log(f"OK      {item}  ->  {dest}")
+                else:
+                    dest = convert_one(Path(item), target, args)
+                    self._log(f"OK      {Path(item).name}  ->  {dest}")
                 done += 1
             except Exception as exc:
-                self._log(f"FAILED  {src.name}: {exc}")
+                name = item if is_url(item) else Path(item).name
+                self._log(f"FAILED  {name}: {exc}")
         self.root.after(0, self._finish, done, len(files))
 
     def _finish(self, done: int, total: int) -> None:

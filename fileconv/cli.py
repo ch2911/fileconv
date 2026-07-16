@@ -28,6 +28,7 @@ from .video import (
     convert_video,
     resolve_video_target,
 )
+from .web import download_url, is_url
 
 ALL_TARGETS = sorted(set(IMAGE_FORMATS) | VIDEO_TARGETS | AUDIO_FORMATS | DOC_FORMATS)
 
@@ -36,10 +37,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="fileconv",
         description="Convert images (HEIC/JPEG/PNG/...), video (MP4/HEVC/MOV/...), "
-        "audio (MP3/WAV/...) and documents (DOCX/PDF).",
+        "audio (MP3/WAV/...) and documents (DOCX/PDF). Also downloads URLs "
+        "(YouTube, SoundCloud, ...) to audio or video.",
         epilog="Supported targets: " + ", ".join(ALL_TARGETS),
     )
-    parser.add_argument("inputs", nargs="*", help="Files, globs, or folders to convert")
+    parser.add_argument(
+        "inputs", nargs="*",
+        help="Files, globs, folders, or URLs to convert (URL downloads default to ~/Downloads)",
+    )
     parser.add_argument("-t", "--to", metavar="FORMAT", help="Target format (e.g. jpg, hevc, pdf)")
     parser.add_argument("-o", "--outdir", metavar="DIR", help="Output folder (default: next to source)")
     parser.add_argument("--quality", type=int, default=90, help="Image quality 1-100 (default 90)")
@@ -146,12 +151,20 @@ def main(argv: list[str] | None = None) -> int:
     if target not in ALL_TARGETS:
         parser.error(f"unknown target {args.to!r}. Supported: {', '.join(ALL_TARGETS)}")
 
-    files = collect_inputs(args.inputs)
-    if not files:
+    urls = [raw for raw in args.inputs if is_url(raw)]
+    files = collect_inputs([raw for raw in args.inputs if not is_url(raw)])
+    if not files and not urls:
         print("error: nothing to convert", file=sys.stderr)
         return 1
 
     failures = 0
+    for url in urls:
+        try:
+            dest = download_url(url, target, args.outdir, overwrite=args.overwrite)
+            print(f"  {url}  ->  {dest}")
+        except Exception as exc:
+            failures += 1
+            print(f"  {url}  FAILED: {exc}", file=sys.stderr)
     for src in files:
         try:
             dest = convert_one(src, target, args)
@@ -160,7 +173,7 @@ def main(argv: list[str] | None = None) -> int:
             failures += 1
             print(f"  {src}  FAILED: {exc}", file=sys.stderr)
 
-    total = len(files)
+    total = len(files) + len(urls)
     print(f"Done: {total - failures}/{total} converted.")
     return 1 if failures else 0
 
