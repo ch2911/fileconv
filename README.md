@@ -18,8 +18,10 @@ Notes:
   with H.265 (keeping the MP4/MOV container) and tags it `hvc1` so it plays on
   Apple devices. Plain container changes (e.g. `mov -> mp4`) copy the streams
   without re-encoding, which is fast and lossless.
-- **DOCX → PDF** uses Microsoft Word if installed, otherwise LibreOffice.
-  PDF → DOCX needs neither.
+- **DOCX → PDF** works out of the box via a bundled pandoc + typst pipeline
+  (pip packages, nothing to install). If Microsoft Word or LibreOffice is
+  installed, that is used instead for maximum layout fidelity.
+  PDF → DOCX needs no external programs either.
 - ffmpeg is bundled via the `imageio-ffmpeg` package — no system install needed.
   If you have ffmpeg on your PATH, that copy is used instead.
 

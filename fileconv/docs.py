@@ -1,15 +1,19 @@
 """Document conversions: DOCX -> PDF and PDF -> DOCX.
 
-DOCX -> PDF uses Microsoft Word via docx2pdf when Word is installed,
-otherwise falls back to LibreOffice in headless mode.
+DOCX -> PDF tries three engines, best fidelity first:
+  1. Microsoft Word (via docx2pdf), when installed
+  2. LibreOffice in headless mode, when installed
+  3. pandoc + typst (pure pip packages, no installed programs needed)
 PDF -> DOCX uses pdf2docx and needs no external programs.
 """
 
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 DOC_FORMATS = {"docx", "pdf"}
@@ -44,6 +48,17 @@ def _word_available() -> bool:
         return False
 
 
+def _pandoc_typst_available() -> bool:
+    try:
+        import pypandoc
+        import typst  # noqa: F401
+
+        pypandoc.get_pandoc_version()
+        return True
+    except Exception:
+        return False
+
+
 def docx_to_pdf(src: Path, dest: Path) -> Path:
     if _word_available():
         from docx2pdf import convert
@@ -65,9 +80,40 @@ def docx_to_pdf(src: Path, dest: Path) -> Path:
             produced.replace(dest)
         return dest
 
+    if _pandoc_typst_available():
+        return _docx_to_pdf_pandoc(src, dest)
+
     raise RuntimeError(
-        "DOCX -> PDF needs Microsoft Word or LibreOffice installed; neither was found."
+        "DOCX -> PDF needs Microsoft Word, LibreOffice, or the pandoc/typst "
+        "fallback (`pip install pypandoc-binary typst`); none was found."
     )
+
+
+def _docx_to_pdf_pandoc(src: Path, dest: Path) -> Path:
+    """Pure-Python engine: pandoc turns the DOCX into typst markup, typst
+    compiles that to PDF. Embedded images are extracted alongside."""
+    import pypandoc
+    import typst
+
+    src = src.resolve()
+    dest = dest.resolve()
+    with tempfile.TemporaryDirectory() as tmp:
+        typ_file = Path(tmp) / "document.typ"
+        # Run pandoc from inside the temp dir so extracted media get relative
+        # paths, which typst resolves against its root.
+        cwd = os.getcwd()
+        os.chdir(tmp)
+        try:
+            pypandoc.convert_file(
+                str(src),
+                "typst",
+                outputfile=str(typ_file),
+                extra_args=["--extract-media", "."],
+            )
+        finally:
+            os.chdir(cwd)
+        typst.compile(str(typ_file), output=str(dest), root=tmp)
+    return dest
 
 
 def pdf_to_docx(src: Path, dest: Path) -> Path:
