@@ -180,3 +180,7 @@ The test suite generates its own sample images, videos, and PDFs — no fixtures
 in the repo. The DOCX → PDF test is skipped automatically if no conversion
 engine is available. One test downloads a real (19-second) YouTube video and is
 skipped unless you opt in: `FILECONV_NETWORK_TESTS=1 pytest tests/test_web.py`.
+
+## License
+
+[MIT](LICENSE)
