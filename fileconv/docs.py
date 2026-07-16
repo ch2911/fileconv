@@ -37,15 +37,17 @@ def _find_libreoffice() -> str | None:
 
 
 def _word_available() -> bool:
-    if sys.platform != "win32":
-        return False
-    import winreg
+    if sys.platform == "win32":
+        import winreg
 
-    try:
-        winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, "Word.Application").Close()
-        return True
-    except OSError:
-        return False
+        try:
+            winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, "Word.Application").Close()
+            return True
+        except OSError:
+            return False
+    if sys.platform == "darwin":
+        return Path("/Applications/Microsoft Word.app").exists()
+    return False
 
 
 def _pandoc_typst_available() -> bool:

@@ -90,6 +90,21 @@ the GUI; to get it on the taskbar, launch it and right-click its taskbar icon �
 The exe also works from scripts: `FileConverter.exe photo.heic -t jpg` converts
 silently with no window.
 
+## macOS app
+
+Apps must be built on the platform they run on, so run this on the Mac itself:
+
+```bash
+git clone https://github.com/ch2911/fileconv
+cd fileconv
+./build_app.sh
+```
+
+The script creates its own virtual environment, installs everything, and
+produces `dist/File Converter.app`. Drag that into `/Applications`, launch it,
+then right-click the Dock icon → **Options → Keep in Dock**. If you use
+Homebrew Python, install Tk support first: `brew install python-tk`.
+
 ## Tests
 
 ```powershell
