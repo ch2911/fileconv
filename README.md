@@ -1,9 +1,11 @@
 # fileconv
 
 A local file format converter with a command line and a simple GUI. No cloud
-services — everything runs on your machine.
+services — everything runs on your machine. Works as a Python tool on
+Windows/macOS/Linux, as a packaged desktop app on Windows and macOS, and the
+URL-download feature has an on-device iPhone recipe too.
 
-## Supported conversions
+## What it converts
 
 | Category  | Formats                                                            |
 | --------- | ------------------------------------------------------------------ |
@@ -13,7 +15,7 @@ services — everything runs on your machine.
 | Documents | DOCX ↔ PDF                                                          |
 | Web URLs  | YouTube/SoundCloud/etc. link → MP3 (or any audio format above) or MP4/MKV/WebM/MOV video |
 
-Notes:
+Good to know:
 
 - **HEVC** is a codec, not a container. `-t hevc` re-encodes the video stream
   with H.265 (keeping the MP4/MOV container) and tags it `hvc1` so it plays on
@@ -23,44 +25,53 @@ Notes:
   (pip packages, nothing to install). If Microsoft Word or LibreOffice is
   installed, that is used instead for maximum layout fidelity.
   PDF → DOCX needs no external programs either.
-- ffmpeg is bundled via the `imageio-ffmpeg` package — no system install needed.
-  If you have ffmpeg on your PATH, that copy is used instead.
+- **ffmpeg is bundled** via the `imageio-ffmpeg` package — no system install
+  needed. If you have ffmpeg on your PATH, that copy is used instead.
+- **URL downloads** save to `~/Downloads` by default (override with `-o`).
+  Only download content you have the rights to.
 
-## Setup
+## Quick start (Windows / macOS / Linux)
 
-```powershell
+Requires Python 3.10+ ([python.org](https://www.python.org/downloads/) builds
+include everything needed).
+
+```bash
+git clone https://github.com/ch2911/fileconv
+cd fileconv
 python -m venv .venv
+
+# Windows (PowerShell):
 .venv\Scripts\activate
+# macOS / Linux:
+source .venv/bin/activate
+
 pip install -r requirements.txt
 ```
 
-## Usage
+Then convert away:
 
-```powershell
-# Single file
+```bash
+# Images
 python convert.py photo.heic -t jpg
-
-# Batch: globs and folders work
-python convert.py *.heic -t png -o converted/
-python convert.py C:\Photos -t jpg
+python convert.py *.heic -t png -o converted/     # globs work
+python convert.py C:\Photos -t jpg                # so do folders (Windows)
+python convert.py ~/Pictures -t jpg               # (macOS/Linux)
 
 # Video
-python convert.py movie.mp4 -t hevc            # H.265 re-encode, smaller file
-python convert.py clip.mov -t mp4              # fast remux, no re-encode
+python convert.py movie.mp4 -t hevc               # H.265 re-encode, smaller file
+python convert.py clip.mov -t mp4                 # fast remux, no re-encode
 python convert.py clip.mov -t mp4 --codec h264 --crf 20
 python convert.py demo.mp4 -t gif
 
 # Audio
 python convert.py song.wav -t mp3
-python convert.py movie.mp4 -t mp3             # extract soundtrack
+python convert.py movie.mp4 -t mp3                # extract the soundtrack
 
 # Documents
 python convert.py report.docx -t pdf
 python convert.py scan.pdf -t docx
 
-# Web URLs (saved to ~/Downloads unless -o is given).
-# Works for YouTube, SoundCloud, and most sites yt-dlp supports.
-# Only download content you have the rights to.
+# Web URLs (YouTube, SoundCloud, and most sites yt-dlp supports)
 python convert.py "https://www.youtube.com/watch?v=..." -t mp3
 python convert.py "https://soundcloud.com/artist/track" -t mp3
 python convert.py "https://www.youtube.com/watch?v=..." -t mp4
@@ -68,8 +79,6 @@ python convert.py "https://www.youtube.com/watch?v=..." -t mp4
 # GUI (or just run with no arguments)
 python convert.py --gui
 ```
-
-Options:
 
 | Flag          | Meaning                                                    |
 | ------------- | ---------------------------------------------------------- |
@@ -80,8 +89,8 @@ Options:
 | `--crf`       | Video quality; lower = better (h264 default 23, hevc 28)   |
 | `--overwrite` | Replace existing output files                              |
 
-You can also install it as a command: `pip install -e .` then use `fileconv`
-instead of `python convert.py`.
+Prefer a real command? `pip install -e .` installs `fileconv`, so you can run
+`fileconv photo.heic -t jpg` from anywhere the venv is active.
 
 ## Windows app
 
@@ -110,16 +119,64 @@ cd fileconv
 
 The script creates its own virtual environment, installs everything, and
 produces `dist/File Converter.app`. Drag that into `/Applications`, launch it,
-then right-click the Dock icon → **Options → Keep in Dock**. If you use
-Homebrew Python, install Tk support first: `brew install python-tk`.
+then right-click the Dock icon → **Options → Keep in Dock**.
+
+Notes:
+
+- If you use Homebrew Python, install Tk support first: `brew install python-tk`
+  (the python.org installer already includes it).
+- The app is ad-hoc signed, which is fine for the machine it was built on.
+  Don't copy the built app to another Mac — build it there instead.
+
+## iPhone / iPad
+
+iOS can't run fileconv itself (no Python desktop apps, and Apple doesn't allow
+downloader apps in the App Store). But the feature you'd want on the go —
+saving a SoundCloud/YouTube link as an MP3 — works fully on-device using the
+same engine fileconv uses (yt-dlp + ffmpeg), wired into the Share menu:
+
+**One-time setup (~10 minutes):**
+
+1. Install **a-Shell** (free, App Store) — a terminal app with ffmpeg built in.
+2. In a-Shell, run: `pip install yt-dlp`
+3. In the **Shortcuts** app, create a shortcut named "SoundCloud → MP3" with
+   three actions, in this order:
+   1. **Get URLs from Input** — sharing from the SoundCloud app sends
+      "Track title by artist" text with the link buried inside; this extracts
+      the actual link.
+   2. **Get Item from List** — set to **First Item**.
+   3. **a-Shell: Execute Command** — paste:
+
+      ```
+      yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata --embed-thumbnail --no-playlist -P ~/Documents/Music -o "%(title)s.%(ext)s" "URL"
+      ```
+
+      then replace the word `URL` with the magic variable **Item from List**,
+      keeping the quotes around it (links contain `&`, which breaks the
+      command unquoted).
+4. In the shortcut's settings (ⓘ): turn on **Show in Share Sheet**, set
+   **Receive** to URLs and Text, and set **If there's no input** to
+   **Get Clipboard**. Optionally: long-press the shortcut → **Share** →
+   **Add to Home Screen** for a one-tap icon.
+
+**Using it:** tap **Share** on any track → **SoundCloud → MP3** (or copy a link
+and tap the Home Screen icon). MP3s arrive with cover art and metadata in the
+Files app under **On My iPhone → a-Shell → Music**. For video instead of audio,
+swap `-x --audio-format mp3 --audio-quality 0` for
+`-f "bv*+ba/b" --merge-output-format mp4`.
+
+If downloads stop working after a while, sites changed something — update the
+downloader in a-Shell: `pip install -U yt-dlp` (the desktop version needs the
+same occasional bump).
 
 ## Tests
 
-```powershell
+```bash
 pip install pytest
 pytest
 ```
 
 The test suite generates its own sample images, videos, and PDFs — no fixtures
-needed. The DOCX → PDF test is skipped automatically if neither Word nor
-LibreOffice is installed.
+in the repo. The DOCX → PDF test is skipped automatically if no conversion
+engine is available. One test downloads a real (19-second) YouTube video and is
+skipped unless you opt in: `FILECONV_NETWORK_TESTS=1 pytest tests/test_web.py`.
