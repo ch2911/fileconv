@@ -2,13 +2,20 @@ name: Release
 
 # Pushing a version tag (e.g. `git tag v0.1.0 && git push origin v0.1.0`)
 # runs the test suite on all three platforms, builds the Windows and macOS
-# apps, and publishes them as a GitHub release. A workflow_dispatch run does
-# everything except publish, leaving the zips as workflow artifacts.
+# apps, and publishes them as a GitHub release. The same can be done from the
+# Actions tab: a workflow_dispatch run with a version publishes that release
+# (creating the tag), and with the version left empty it is a build-only dry
+# run, leaving the zips as workflow artifacts.
 
 on:
   push:
     tags: ["v*"]
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Tag to publish (e.g. v0.1.0); leave empty for a build-only dry run"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -68,7 +75,7 @@ jobs:
 
   release:
     name: Publish release
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') || inputs.version != ''
     needs: [build-windows, build-macos]
     runs-on: ubuntu-latest
     steps:
@@ -78,6 +85,7 @@ jobs:
 
       - uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ inputs.version || github.ref_name }}
           files: |
             FileConverter-windows.zip
             FileConverter-macos.zip
