@@ -75,12 +75,19 @@ def docx_to_pdf(src: Path, dest: Path) -> Path:
             capture_output=True,
             text=True,
         )
-        if result.returncode != 0:
-            raise RuntimeError(f"LibreOffice conversion failed:\n{result.stderr.strip()}")
+        # soffice can exit 0 without writing anything (e.g. a broken headless
+        # profile prints "source file could not be loaded" and still returns 0),
+        # so only trust it when the PDF actually exists.
         produced = dest.parent / (src.stem + ".pdf")
-        if produced != dest:
-            produced.replace(dest)
-        return dest
+        if result.returncode == 0 and produced.exists():
+            if produced != dest:
+                produced.replace(dest)
+            return dest
+        if not _pandoc_typst_available():
+            raise RuntimeError(
+                "LibreOffice conversion failed:\n"
+                f"{(result.stderr or result.stdout).strip()}"
+            )
 
     if _pandoc_typst_available():
         return _docx_to_pdf_pandoc(src, dest)
