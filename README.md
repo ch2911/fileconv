@@ -28,7 +28,8 @@ Good to know:
 - **ffmpeg is bundled** via the `imageio-ffmpeg` package — no system install
   needed. If you have ffmpeg on your PATH, that copy is used instead.
 - **URL downloads** save to `~/Downloads` by default (override with `-o`).
-  Only download content you have the rights to.
+  Only download content you have the rights to. To play the results in Spotify,
+  see [Playing the results in Spotify](#playing-the-results-in-spotify).
 
 ## Quick start (Windows / macOS / Linux)
 
@@ -168,6 +169,25 @@ swap `-x --audio-format mp3 --audio-quality 0` for
 If downloads stop working after a while, sites changed something — update the
 downloader in a-Shell: `pip install -U yt-dlp` (the desktop version needs the
 same occasional bump).
+
+### Playing the results in Spotify
+
+Useful if the tracks you want aren't on Spotify at all — live versions, remixes,
+DJ edits, or artists who only release on SoundCloud. Spotify reads local files,
+so converted MP3s sit in your library alongside everything else.
+
+**On iPhone/iPad**, no computer needed: in the Files app, move the MP3s into
+**On My iPhone → Spotify** (create the folder if it isn't there). They appear
+under **Your Library → Local Files** in the Spotify app.
+
+**On desktop**, enable **Settings → Local Files → Show Local Files**, then
+**Add a source** and pick your output folder. To get those tracks onto a phone
+this way you need Premium, both devices on the same Wi-Fi, and the playlist
+downloaded for offline use — the Files app route above avoids all three.
+
+Spotify only accepts MP3, M4P, and MP4 for local files, so convert FLAC, WAV,
+and OGG first (`python convert.py track.flac -t mp3`). Keep filenames simple;
+special characters are a common reason a track doesn't show up.
 
 ## Tests
 
