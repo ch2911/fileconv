@@ -34,6 +34,7 @@ FILECONV_NETWORK_TESTS=1 .venv/bin/python -m pytest tests/test_web.py  # live yt
 .venv/bin/python convert.py --gui         # run the GUI from source
 ./build_app.sh                            # mac: build dist/"File Converter.app"
 ./build_app.ps1                           # windows: build dist/FileConverter.exe
+git tag v0.2.0 && git push origin v0.2.0  # release: CI tests 3 OSes, builds both apps, publishes
 ```
 
 ## Gotchas
@@ -48,3 +49,12 @@ FILECONV_NETWORK_TESTS=1 .venv/bin/python -m pytest tests/test_web.py  # live yt
   pandoc+typst tier there; on a machine with Word, docx2pdf runs instead
   (slower, opens Word, higher fidelity).
 - Line endings are pinned in .gitattributes (`.sh` LF, `.ps1` CRLF).
+- CI: `tests.yml` runs the suite on Linux/Windows/macOS; `release.yml` (on
+  `v*` tags) reuses it, then builds both apps and publishes a GitHub release.
+  The asset names `FileConverter-windows.zip` / `FileConverter-macos.zip` are
+  load-bearing — README links use `/releases/latest/download/<name>`.
+- The released macOS app is Apple Silicon-only (`macos-latest` runners are
+  arm64); Intel Macs build from source.
+- LibreOffice headless can exit 0 *without* writing the PDF (broken profile
+  prints "source file could not be loaded", still returns 0). `docx_to_pdf`
+  checks the output file exists and falls back to pandoc+typst.

@@ -1,9 +1,28 @@
 # fileconv
 
+[![Tests](https://github.com/ch2911/fileconv/actions/workflows/tests.yml/badge.svg)](https://github.com/ch2911/fileconv/actions/workflows/tests.yml)
+[![Latest release](https://img.shields.io/github/v/release/ch2911/fileconv)](https://github.com/ch2911/fileconv/releases/latest)
+
 A local file format converter with a command line and a simple GUI. No cloud
 services — everything runs on your machine. Works as a Python tool on
 Windows/macOS/Linux, as a packaged desktop app on Windows and macOS, and the
 URL-download feature has an on-device iPhone recipe too.
+
+## Download
+
+Grab the desktop app from the [latest release](https://github.com/ch2911/fileconv/releases/latest)
+— no Python or setup needed, just unzip and run:
+
+| Platform | Download | First launch |
+| -------- | -------- | ------------ |
+| Windows | [FileConverter-windows.zip](https://github.com/ch2911/fileconv/releases/latest/download/FileConverter-windows.zip) | Run `FileConverter.exe`. If SmartScreen appears: **More info → Run anyway**. |
+| macOS (Apple Silicon) | [FileConverter-macos.zip](https://github.com/ch2911/fileconv/releases/latest/download/FileConverter-macos.zip) | Open the app; when macOS blocks it, go to **System Settings → Privacy & Security** → **Open Anyway** (on older macOS, right-click → **Open** is enough). |
+
+The one-time warnings appear because the apps aren't code-signed (that needs
+paid developer certificates). Each release is built from this repository by the
+[release workflow](.github/workflows/release.yml), so you can see exactly what
+goes into it. On an Intel Mac, or if you'd rather build it yourself, see
+[Windows app](#windows-app) and [macOS app](#macos-app) below.
 
 ## What it converts
 
@@ -95,7 +114,9 @@ Prefer a real command? `pip install -e .` installs `fileconv`, so you can run
 
 ## Windows app
 
-Build a standalone `FileConverter.exe` (no Python needed to run it):
+A prebuilt exe is on the [releases page](https://github.com/ch2911/fileconv/releases/latest)
+— see [Download](#download). To build the standalone `FileConverter.exe`
+yourself (no Python needed to run it):
 
 ```powershell
 pip install pyinstaller
@@ -110,7 +131,9 @@ silently with no window.
 
 ## macOS app
 
-Apps must be built on the platform they run on, so run this on the Mac itself:
+A prebuilt app for Apple Silicon is on the [releases page](https://github.com/ch2911/fileconv/releases/latest)
+— see [Download](#download). To build it yourself (needed on Intel Macs):
+apps must be built on the platform they run on, so run this on the Mac itself:
 
 ```bash
 git clone https://github.com/ch2911/fileconv
