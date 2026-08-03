@@ -156,18 +156,16 @@ Notes:
 
 iOS can't run fileconv itself (no Python desktop apps, and Apple doesn't allow
 downloader apps in the App Store). But the feature you'd want on the go —
-saving a SoundCloud/YouTube link as an MP3 — works fully on-device using the
+saving a link as an MP3 — works fully on-device using the
 same engine fileconv uses (yt-dlp + ffmpeg), wired into the Share menu:
 
 **One-time setup (~10 minutes):**
 
 1. Install **a-Shell** (free, App Store) — a terminal app with ffmpeg built in.
 2. In a-Shell, run: `pip install yt-dlp`
-3. In the **Shortcuts** app, create a shortcut named "SoundCloud → MP3" with
+3. In the **Shortcuts** app, create a shortcut with
    three actions, in this order:
-   1. **Get URLs from Input** — sharing from the SoundCloud app sends
-      "Track title by artist" text with the link buried inside; this extracts
-      the actual link.
+   1. **Get URLs from Input**
    2. **Get Item from List** — set to **First Item**.
    3. **a-Shell: Execute Command** — paste:
 
@@ -183,7 +181,7 @@ same engine fileconv uses (yt-dlp + ffmpeg), wired into the Share menu:
    **Get Clipboard**. Optionally: long-press the shortcut → **Share** →
    **Add to Home Screen** for a one-tap icon.
 
-**Using it:** tap **Share** on any track → **SoundCloud → MP3** (or copy a link
+**Using it:** Either **Share** directly (or copy a link
 and tap the Home Screen icon). MP3s arrive with cover art and metadata in the
 Files app under **On My iPhone → a-Shell → Music**. For video instead of audio,
 swap `-x --audio-format mp3 --audio-quality 0` for
